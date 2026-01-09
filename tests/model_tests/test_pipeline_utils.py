@@ -51,11 +51,15 @@ def test_collate_functions():
     data, labels = eval_collate_fn(batch)
     assert data.shape == (1, 2)
 
-    (data, labels), filepaths = infer_collate_fn(batch)
+    batch_with_mask = [
+        ((torch.tensor([[1, 2]]), torch.tensor([0])), "file1", torch.tensor([False]))
+    ]
+    (data, labels), filepaths, nan_mask = infer_collate_fn(batch_with_mask)
     assert data.shape == (1, 1, 2)
     assert len(labels) == 1
     assert len(filepaths) == 1
     assert filepaths[0] == "file1"
+    assert nan_mask.shape == (1, 1)
 
 
 def test_create_dataloader():

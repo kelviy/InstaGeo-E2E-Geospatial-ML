@@ -89,19 +89,22 @@ def eval_collate_fn(batch: tuple[torch.Tensor]) -> tuple[torch.Tensor, torch.Ten
     return data, labels
 
 
-def infer_collate_fn(batch: tuple[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+def infer_collate_fn(
+    batch: tuple[torch.Tensor],
+) -> tuple[tuple[torch.Tensor, torch.Tensor], List[str], np.ndarray]:
     """Inference DataLoader Collate Function.
 
     Args:
         batch (Tuple[Tensor]): A list of tuples containing features and labels.
 
     Returns:
-        Tuple of (x,y) concatenated into separate tensors
+        Tuple of ((x,y), filepaths, nan_mask)
     """
     data = torch.stack([a[0][0] for a in batch], 0)
     labels = [a[0][1] for a in batch]
     filepaths = [a[1] for a in batch]
-    return (data, labels), filepaths
+    nan_mask = np.stack([(a[2]) for a in batch], 0)
+    return ((data, labels), filepaths, nan_mask)
 
 
 def create_dataloader(
@@ -282,7 +285,10 @@ def create_instageo_dataset(
         bands=cfg.dataloader.bands,
         replace_label=cfg.dataloader.replace_label,
         reduce_to_zero=cfg.dataloader.reduce_to_zero,
-        chip_no_data_value=cfg.dataloader.no_data_value,
+        chip_no_data_value=max(
+            (cfg.dataloader.no_data_value or 0), 0
+        ),  # backward compatibility with old models where no_data_value was set to -9999/None
+        # no_data_value will be set to 0 for those models
         label_no_data_value=cfg.train.ignore_index,
         constant_multiplier=cfg.dataloader.constant_multiplier,
         include_filenames=include_filenames,

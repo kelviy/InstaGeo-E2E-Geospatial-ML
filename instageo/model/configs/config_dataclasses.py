@@ -23,6 +23,7 @@ class ModelInfo(BaseModel):
     num_steps: int = 1
     temporal_step: int = 0
     model_description: str = ""
+    no_data_value: int = 0
 
 
 class ModelEnum(str, Enum):

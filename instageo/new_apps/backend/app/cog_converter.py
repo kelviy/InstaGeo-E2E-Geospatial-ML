@@ -13,6 +13,8 @@ import rasterio
 
 logger = logging.getLogger(__name__)
 
+PREDICTION_NO_DATA_VALUE = -1
+
 
 class COGConverter:
     """Simple service for merging TIF chips into Cloud Optimized GeoTIFFs using GDAL."""
@@ -22,7 +24,11 @@ class COGConverter:
         pass
 
     def merge_task_files_to_cog(
-        self, data_path: str, chip_size: int = 256, compute_seg_stats: bool = False
+        self,
+        data_path: str,
+        chip_size: int = 256,
+        compute_seg_stats: bool = False,
+        no_data_value: int = 0,
     ) -> Dict[str, Any]:
         """Merge TIF chips and prediction results from a directory into COGs using GDAL in parallel.
 
@@ -30,6 +36,7 @@ class COGConverter:
             data_path: Directory containing files to merge into COG.
             chip_size: Size of chips (used as block size).
             compute_seg_stats: Whether to compute segmentation stats.
+            no_data_value: No-data value to set in COG.
 
         Returns:
             Tuple of (merged_chips_cog_path, merged_predictions_cog_path)
@@ -62,6 +69,7 @@ class COGConverter:
                     str(output_path / "chips_merged.tif"),
                     chip_size,
                     True,  # Enable band selection for chips (keep only B, G, R)
+                    no_data_value,
                 )
                 predictions_future = executor.submit(
                     self.merge_files_to_cog,
@@ -69,6 +77,7 @@ class COGConverter:
                     str(output_path / "predictions_merged.tif"),
                     chip_size,
                     False,  # No band selection for predictions
+                    PREDICTION_NO_DATA_VALUE,
                 )
 
                 # Wait for both to complete and get results
@@ -101,6 +110,7 @@ class COGConverter:
         output_path: str,
         chip_size: int = 256,
         select_bands: bool = False,
+        no_data_value: int = 0,
     ) -> str:
         """Merge TIF files from a list of files into a single COG using GDAL.
 
@@ -109,6 +119,8 @@ class COGConverter:
             output_path: Path for output COG file.
             chip_size: Size of chips (used as block size).
             select_bands: If True, keep only first 3 bands (B, G, R) for RGB data.
+            no_data_value: No-data value to set in the COG. If None, the default no-data
+                value will be set.
 
         Returns:
             Path to the created COG file.
@@ -126,6 +138,10 @@ class COGConverter:
                 "gdal_merge.py",
                 "-o",
                 temp_merged,
+                "-n",
+                str(no_data_value),
+                "-a_nodata",
+                str(no_data_value),
                 *[str(f) for f in tif_files],
             ]
 
@@ -151,6 +167,9 @@ class COGConverter:
                     ["-b", "1", "-b", "2", "-b", "3"]
                 )  # Keep only first 3 bands (B, G, R)
                 logger.info("Selecting only first 3 bands (B, G, R) for RGB data")
+
+            cog_cmd.extend(["-a_nodata", str(no_data_value)])
+            logger.info(f"Setting no-data value to {no_data_value} in COG")
 
             cog_cmd.extend(
                 [

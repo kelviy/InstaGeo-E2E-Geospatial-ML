@@ -33,19 +33,10 @@ from instageo.data import geo_utils
 from instageo.data.flags import FLAGS  # Import flags from central location
 from instageo.data.hls_utils import HLSRasterPipeline, add_hls_stac_items
 from instageo.data.s2_utils import S2RasterPipeline, add_s2_stac_items
-from instageo.data.settings import (
-    HLSAPISettings,
-    HLSBandsSettings,
-    HLSBlockSizes,
-    NoDataValues,
-    S2APISettings,
-)
+from instageo.data.settings import HLSAPISettings, S2APISettings
 from instageo.data.stac_utils import create_records_with_items
 
 # Create instances of the settings classes
-NO_DATA_VALUES = NoDataValues()
-HLS_BLOCKSIZE = HLSBlockSizes()
-HLS_BANDS = HLSBandsSettings()
 HLS_API = HLSAPISettings()
 S2_API = S2APISettings()
 

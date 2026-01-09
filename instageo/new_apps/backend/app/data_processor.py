@@ -4,6 +4,7 @@ This module provides a proxy interface to the bounding boxes data pipeline for p
 satellite data extraction tasks. It handles folder structure, parameter mapping,
 and integration with the task system.
 """
+
 import json
 import logging
 from datetime import datetime
@@ -12,9 +13,11 @@ from typing import Any, Dict, List, Optional
 
 from absl import flags
 
-from instageo.data.raster_chip_creator import main as bbox_chip_creator
+from instageo.data.settings import DataPipelineSettings
 
 logger = logging.getLogger(__name__)
+
+DATA_PIPELINE_SETTINGS = DataPipelineSettings()
 
 
 class DataProcessor:
@@ -99,6 +102,12 @@ class DataProcessor:
 
         params = {
             "is_bbox_feature": True,
+            "spatial_resolution": (
+                DATA_PIPELINE_SETTINGS.HLS_SPATIAL_RESOLUTION
+                if parameters["data_source"] == "HLS"
+                else DATA_PIPELINE_SETTINGS.S2_SPATIAL_RESOLUTION
+            ),
+            "chip_size": parameters["chip_size"],
             "bbox_feature_path": str(bbox_file),
             "output_directory": str(self.data_dir),
             "temporal_tolerance": parameters["temporal_tolerance"],
@@ -108,6 +117,8 @@ class DataProcessor:
             "cloud_coverage": parameters["cloud_coverage"],
             "date": parameters["date"],
         }
+        if parameters["mask_cloud"]:
+            params["mask_types"] = "cloud"
         return params
 
     def _run_pipeline(self, params: Dict[str, Any]) -> None:
@@ -116,6 +127,8 @@ class DataProcessor:
         Args:
             params: Parameters for bounding boxes data pipeline.
         """
+        from instageo.data.raster_chip_creator import main as bbox_chip_creator
+
         # Build command line arguments
         args = ["raster_chip_creator"]
         for key, value in params.items():

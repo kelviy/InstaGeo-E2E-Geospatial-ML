@@ -696,6 +696,7 @@ def process_visualization_preparation_with_task(
             data_path=processed_data["data_path"],
             chip_size=processed_data["chip_size"],
             compute_seg_stats=(processed_data["parameters"].get("model_type") == "seg"),
+            no_data_value=processed_data["parameters"].get("no_data_value"),
         )
         logger.info(f"Chips merged cog path: {results['chips_merged_cog_path']}")
         logger.info(f"Predictions merged cog path: {results['predictions_merged_cog_path']}")

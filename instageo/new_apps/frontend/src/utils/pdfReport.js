@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from 'recharts';
 import { generateSegmentationColors } from '../components/../utils/segmentationColors';
 import { useCurrentPng } from 'recharts-to-png';
-import { LOGO_PATHS } from '../constants';
+import { LOGO_PATHS, TASKS_MONITOR_DISCLAIMER_TEXT } from '../constants';
 import { logger } from './logger';
 import apiService from '../services/apiService';
 import { prefixTitilerUrl } from '../config';
@@ -376,6 +376,21 @@ export async function generateTaskPdf(taskLayer, getAccessTokenSilently) {
     const totalPages = doc.internal.getNumberOfPages();
     for(let p=1;p<=totalPages;p++){
       doc.setPage(p);
+      doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+
+      // Add disclaimer text
+      doc.setFontSize(7);
+      doc.setTextColor(100,100,100);
+      const disclaimerText = `Disclaimer: ${TASKS_MONITOR_DISCLAIMER_TEXT}`;
+      const splitDisclaimer = doc.splitTextToSize(disclaimerText, pageWidth - 20);
+      let disclaimerY = pageHeight - 15;
+      splitDisclaimer.forEach((line) => {
+        doc.text(line, pageWidth/2, disclaimerY, {align:'center'});
+        disclaimerY += 3.5;
+      });
+
+      // Add page number
       doc.setFontSize(8);
       doc.setTextColor(150,150,150);
       doc.text(`Page ${p} of ${totalPages}`, pageWidth/2, pageHeight-5, {align:'center'});

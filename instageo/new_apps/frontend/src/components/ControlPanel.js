@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Drawer, Box, Typography, Select, MenuItem, FormControl, InputLabel, Slider, Button, TextField, CircularProgress, Tooltip, IconButton, Collapse, Divider, Paper, Chip, InputAdornment } from '@mui/material';
+import { Drawer, Box, Typography, Select, MenuItem, FormControl, InputLabel, Slider, Button, TextField, CircularProgress, Tooltip, IconButton, Collapse, Divider, Paper, Chip, InputAdornment, FormControlLabel, Switch } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -30,6 +30,7 @@ const ControlPanel = ({ open, onClose, hasBoundingBox, onRunModel, isProcessing,
     temporal_step: false,
     temporal_tolerance: false,
     cloud_coverage: false,
+    mask_cloud: false,
   });
 
 
@@ -418,6 +419,20 @@ const ControlPanel = ({ open, onClose, hasBoundingBox, onRunModel, isProcessing,
 
 
         {renderSlider('Maximum Cloud Cover', 'cloud_coverage', 0, 100, 1, 'cloud_coverage')}
+        <FormControlLabel
+          control={<Switch checked={params.mask_cloud} onChange={(e) => handleParamChange('mask_cloud', e.target.checked)} />}
+          label="Mask Clouds"
+        />
+        <Tooltip title="More info">
+              <IconButton size="small" onClick={() => setHelpOpen(prev => ({ ...prev, mask_cloud: !prev.mask_cloud }))}>
+            <InfoOutlinedIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
+        <Collapse in={helpOpen.mask_cloud}>
+          <Typography variant="caption" color="text.secondary">
+            {PARAMS_HELP.mask_cloud}
+          </Typography>
+        </Collapse>
 
         <Button
           variant="contained"

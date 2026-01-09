@@ -64,6 +64,10 @@ class ModelRegistry:
             num_steps=model_config["dataloader"]["temporal_dim"],
             temporal_step=model_data.get("temporal_step", 0),
             model_description=model_data.get("model_description", "unknown"),
+            no_data_value=max(
+                (model_config["dataloader"].get("no_data_value", 0) or 0), 0
+            ),  # backward compatibility with old models where no_data_value was set to -9999/None
+            # no_data_value will be set to 0 for those models
         )
 
     def get_model_config(

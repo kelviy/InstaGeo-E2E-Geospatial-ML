@@ -173,10 +173,10 @@ Before running the deployment script, you must configure Cloudflare Tunnels:
 Navigate at the root directory of the project and run
 ```bash
 # Deploy with Cloudflare tunnel
-./scripts/deploy.sh
+./scripts/deploy.sh --cloudflare
 
 # Deploy without Cloudflare tunnel
-./scripts/deploy.sh --skip-cloudflare
+./scripts/deploy.sh
 ```
 
 ## Monitoring

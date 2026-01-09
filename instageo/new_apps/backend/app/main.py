@@ -208,6 +208,7 @@ class TaskCreationRequest(BaseModel):
     model_size: str
     date: str
     cloud_coverage: int
+    mask_cloud: bool
     temporal_tolerance: int
 
 
@@ -287,6 +288,7 @@ async def create_task(
             "model_size": model_size,
             "date": task_request.date,
             "cloud_coverage": task_request.cloud_coverage,
+            "mask_cloud": task_request.mask_cloud,
             "temporal_tolerance": task_request.temporal_tolerance or model_info.temporal_step,
             # True model parameters from registry
             "chip_size": model_info.chip_size,
@@ -297,6 +299,7 @@ async def create_task(
             "model_short_name": model_info.model_short_name,
             "model_name": model_info.model_name,
             "classes_mapping": model_info.classes_mapping,
+            "no_data_value": model_info.no_data_value,
         }
 
         # Create task instance (this automatically starts data processing)

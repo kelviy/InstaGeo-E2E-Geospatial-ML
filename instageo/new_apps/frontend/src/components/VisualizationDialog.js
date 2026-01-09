@@ -19,7 +19,8 @@ import {
 import {
     Close as CloseIcon,
     Map as MapIcon,
-    Download as DownloadIcon
+    Download as DownloadIcon,
+    Info as InfoIcon
 } from '@mui/icons-material';
 import { generateTiTilerColormap } from '../utils/segmentationColors';
 import { logger } from '../utils/logger';
@@ -306,9 +307,14 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
                         <Card>
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                                    <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
-                                        Satellite Data
-                                    </Typography>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+                                            Satellite Data
+                                        </Typography>
+                                        <Tooltip title="Only the last time step is displayed for multi-temporal satellite data.">
+                                            <InfoIcon fontSize="small" color="action" sx={{ cursor: 'help' }} />
+                                        </Tooltip>
+                                    </Box>
                                     <Chip label="RGB Composite" size="small" color="primary" />
                                 </Box>
                                 <Box sx={{
@@ -349,13 +355,13 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
                                 <Box display="flex" justifyContent="center" gap={1} mt={1}>
                                     <Tooltip title="Download preview">
                                         <span>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleDownloadPreview(getSatellitePreviewUrl(), 'satellite_preview.png')}
-                                            disabled={satelliteImageError || satelliteImageLoading}
-                                        >
-                                            <DownloadIcon />
-                                        </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleDownloadPreview(getSatellitePreviewUrl(), 'satellite_preview.png')}
+                                                disabled={satelliteImageError || satelliteImageLoading}
+                                            >
+                                                <DownloadIcon />
+                                            </IconButton>
                                         </span>
                                     </Tooltip>
                                 </Box>
@@ -368,9 +374,14 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
                         <Card>
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                                    <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
-                                        Model Prediction
-                                    </Typography>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+                                            Model Prediction
+                                        </Typography>
+                                        <Tooltip title="When cloud masking is enabled, only pixels that are masked for all timesteps are ignored.">
+                                            <InfoIcon fontSize="small" color="action" sx={{ cursor: 'help' }} />
+                                        </Tooltip>
+                                    </Box>
                                     <Chip
                                         label={task.model_short_name}
                                         size="small"
@@ -424,13 +435,13 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
                                 <Box display="flex" justifyContent="center" gap={1} mt={1}>
                                     <Tooltip title="Download preview">
                                         <span>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleDownloadPreview(getPredictionPreviewUrl(), 'prediction_preview.png')}
-                                            disabled={predictionImageError || predictionImageLoading}
-                                        >
-                                            <DownloadIcon />
-                                        </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleDownloadPreview(getPredictionPreviewUrl(), 'prediction_preview.png')}
+                                                disabled={predictionImageError || predictionImageLoading}
+                                            >
+                                                <DownloadIcon />
+                                            </IconButton>
                                         </span>
                                     </Tooltip>
                                 </Box>

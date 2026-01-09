@@ -33,6 +33,7 @@ import {
     Info as InfoIcon,
     Login as LoginIcon
 } from '@mui/icons-material';
+import { TASKS_MONITOR_DISCLAIMER_TEXT } from '../constants';
 import { useAuth0 } from '@auth0/auth0-react';
 import VisualizationDialog from './VisualizationDialog';
 import BoundingBoxSnapshot from './BoundingBoxSnapshot';
@@ -337,7 +338,12 @@ const TasksMonitor = ({ open, onClose, onAddTaskLayer }) => {
             maxWidth="lg"
             fullWidth
             PaperProps={{
-                style: { maxHeight: '90vh' }
+                style: {
+                    maxHeight: '90vh',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }
             }}
         >
             <DialogTitle>
@@ -374,7 +380,7 @@ const TasksMonitor = ({ open, onClose, onAddTaskLayer }) => {
                     </Box>
                 </Box>
             </DialogTitle>
-            <DialogContent sx={{ pt: 2 }}>
+            <DialogContent sx={{ pt: 2, pb: 12 }}>
                 {/* Search and Filter Controls */}
                 <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start', pt: 1 }}>
                     <TextField
@@ -902,7 +908,7 @@ const TasksMonitor = ({ open, onClose, onAddTaskLayer }) => {
 
                 {/* Page Info */}
                 {filteredTasks.length > 0 && (
-                    <Box sx={{ textAlign: 'center', mb: 1 }}>
+                    <Box sx={{ textAlign: 'center', mb: 8 }}>
                         <Typography variant="body2" color="textSecondary">
                             Page {currentPage} of {totalPages} •
                             Showing tasks {startIndex + 1}-{Math.min(endIndex, filteredTasks.length)} of {filteredTasks.length}
@@ -910,6 +916,33 @@ const TasksMonitor = ({ open, onClose, onAddTaskLayer }) => {
                     </Box>
                 )}
             </DialogContent>
+
+            {/* Fixed Disclaimer at Bottom */}
+            <Box
+                sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark'
+                            ? 'rgba(18, 18, 18, 0.95)'
+                            : 'rgba(255, 255, 255, 0.95)',
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    p: 2,
+                    zIndex: 1300,
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: (theme) =>
+                        theme.palette.mode === 'dark'
+                            ? '0 -4px 12px rgba(0, 0, 0, 0.5)'
+                            : '0 -4px 12px rgba(0, 0, 0, 0.1)'
+                }}
+            >
+                <Typography variant="caption" component="div" sx={{ fontSize: '0.75rem', lineHeight: 1.5 }}>
+                    <strong>Disclaimer:</strong> {TASKS_MONITOR_DISCLAIMER_TEXT}
+                </Typography>
+            </Box>
         </Dialog>
 
         {/* Visualization Data Dialog */}

@@ -89,7 +89,7 @@ def chip_inference(
 
     with torch.no_grad():
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            for (data, _), file_names in tqdm(dataloader, desc="Running Inference"):
+            for (data, _), file_names, nan_mask in tqdm(dataloader, desc="Running Inference"):
                 data = data.to(device)
                 prediction_batch = model(data)
 
@@ -100,6 +100,10 @@ def chip_inference(
                         torch.argmax(prediction_batch, dim=1).cpu().numpy().astype(np.int8)
                     )
 
+                # Mask out the predictions where the chip had no_data_value
+                nan_mask = np.all(nan_mask, axis=1).astype(int)
+                prediction_batch = np.where(nan_mask == 1, -1, prediction_batch)
+
                 profiles = []
                 for file_name in file_names:
                     with rasterio.open(file_name) as src:
@@ -109,6 +113,7 @@ def chip_inference(
                             dtype=rasterio.int8
                             if prediction_batch.dtype == np.int8
                             else rasterio.float32,
+                            nodata=-1,
                         )
                         profiles.append(profile)
 

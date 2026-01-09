@@ -71,6 +71,7 @@ def test_run_model_and_task_status():
             "model_size": "tiny",
             "date": "2023-01-01",
             "cloud_coverage": 10,
+            "mask_cloud": False,
             "temporal_tolerance": 30,
         }
         response = client.post("/api/run-model", json=payload)
@@ -144,6 +145,7 @@ def test_get_all_tasks():
             "model_size": "tiny",
             "date": "2023-01-01",
             "cloud_coverage": 10,
+            "mask_cloud": False,
             "temporal_tolerance": 30,
         }
         response = client.post("/api/run-model", json=payload)

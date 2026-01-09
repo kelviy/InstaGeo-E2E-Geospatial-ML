@@ -228,3 +228,5 @@ class DataPipelineSettings(BaseSettings):
     BATCH_SIZE: int = 16  # Number of records to process at a time
     METADATA_SEARCH_RATELIMIT: int = 10  # Number of metadata searches per minute
     COG_DOWNLOAD_RATELIMIT: int = 30  # Number of COG downloads per minute
+    HLS_SPATIAL_RESOLUTION: float = 0.0002694945852358564
+    S2_SPATIAL_RESOLUTION: float = 8.983152841195215e-05
