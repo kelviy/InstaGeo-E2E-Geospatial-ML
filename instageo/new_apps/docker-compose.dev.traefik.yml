@@ -1,0 +1,139 @@
+# Reusable defaults for all backend services
+x-instageo-backend-service-defaults: &backend-defaults
+  environment:
+    - REDIS_HOST=${REDIS_HOST}
+    - REDIS_PORT=${REDIS_PORT}
+    - REDIS_DB=${REDIS_DB}
+    - TEST_FILEPATH=${TEST_FILEPATH}
+    - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+    - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+    - DATABASE_URL=${DATABASE_URL}
+  volumes:
+    - ../../instageo:/app/instageo
+    - shared-data:${DATA_FOLDER}
+    - ${HOST_MODELS_PATH}:${APP_MODELS_PATH}:ro
+    - database-data:/app/database
+  networks:
+    - instageo-network
+
+services:
+  instageo-redis:
+    image: redis:8-alpine
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - instageo-network
+
+  instageo-backend-api:
+    <<: *backend-defaults
+    build:
+      context: ../..         # Project root
+      dockerfile: instageo/new_apps/backend/Dockerfile
+      args:
+        DATA_FOLDER: ${DATA_FOLDER}
+        EARTHDATA_USERNAME: ${EARTHDATA_USERNAME}
+        EARTHDATA_PASSWORD: ${EARTHDATA_PASSWORD}
+        MODELS_PATH: ${APP_MODELS_PATH}
+    image: instageo-backend:dev
+    depends_on:
+      - instageo-redis
+    ports:
+      - "8000:8000"
+    command: uvicorn instageo.new_apps.backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  instageo-backend-data-processing-worker:
+    <<: *backend-defaults
+    image: instageo-backend:dev
+    depends_on:
+      - instageo-backend-api
+    deploy:
+      replicas: ${DATA_PROCESSING_WORKER_REPLICAS:-2}
+    command: rq worker data-processing
+
+  instageo-backend-model-prediction-worker:
+    <<: *backend-defaults
+    image: instageo-backend:dev
+    depends_on:
+      - instageo-backend-api
+    deploy:
+      replicas: ${MODEL_PREDICTION_WORKER_REPLICAS:-2}
+    command: rq worker model-prediction
+
+  instageo-backend-visualization-preparation-worker:
+    <<: *backend-defaults
+    image: instageo-backend:dev
+    depends_on:
+      - instageo-backend-api
+    deploy:
+      replicas: ${VISUALIZATION_PREPARATION_WORKER_REPLICAS:-1}
+    command: rq worker visualization-preparation
+
+  instageo-backend-rq-dashboard:
+    <<: *backend-defaults
+    image: instageo-backend:dev
+    depends_on:
+      - instageo-backend-api
+    ports:
+      - "9181:9181"
+    command: sh -c "rq-dashboard --redis-url redis://$$REDIS_HOST:$$REDIS_PORT/$$REDIS_DB --port 9181"
+
+  instageo-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      args:
+      - REACT_APP_INSTAGEO_BACKEND_API_BASE_URL=https://instageo.local.kelvinwei.com
+      - REACT_APP_MIN_AREA_KM2=${REACT_APP_MIN_AREA_KM2}
+      - REACT_APP_MAX_AREA_KM2=${REACT_APP_MAX_AREA_KM2}
+      - REACT_APP_ENV=dev
+      - REACT_APP_AUTH0_DOMAIN=${REACT_APP_AUTH0_DOMAIN}
+      - REACT_APP_AUTH0_CLIENT_ID=${REACT_APP_AUTH0_CLIENT_ID}
+      - REACT_APP_AUTH0_REDIRECT_URI=${REACT_APP_AUTH0_REDIRECT_URI}
+      - REACT_APP_AUTH0_AUDIENCE=${REACT_APP_AUTH0_AUDIENCE}
+    expose:
+      - "3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - instageo-backend-api
+    stdin_open: true
+    tty: true
+    networks:
+      - instageo-network
+
+  instageo-nginx:
+    image: nginx:alpine
+    expose:
+      - "80"
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - instageo-frontend
+      - instageo-backend-api
+    labels:
+      # ---- Traefik Labels ----
+      - "traefik.enable=true"
+      # Router Definition (HTTPS)
+      - "traefik.http.routers.instageo.rule=Host(`instageo.local.kelvinwei.com`)"
+      # Apply Authelia Middlewares
+      # - "traefik.http.routers.instageo.middlewares=auth@file"
+      # Port Entrypoint Definition (Service Definition)
+      - "traefik.http.services.instageo.loadbalancer.server.port=80"
+    networks:
+      - instageo-network
+      - proxy
+
+volumes:
+  redis_data:
+  shared-data:
+  database-data:
+
+networks:
+  instageo-network:
+    driver: bridge
+  proxy:
+    external: true
