@@ -28,6 +28,14 @@ import apiService from '../services/apiService';
 import { useAuth0 } from '@auth0/auth0-react';
 import { prefixTitilerUrl } from '../config';
 
+const appendQueryParams = (url, params) => {
+    if (!url) return '';
+
+    const separator = url.includes('?') ? '&' : '?';
+    const searchParams = new URLSearchParams(params);
+    return `${url}${separator}${searchParams.toString()}`;
+};
+
 const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMonitor }) => {
     const { getAccessTokenSilently } = useAuth0();
     const [satelliteImageLoading, setSatelliteImageLoading] = useState(true);
@@ -37,7 +45,10 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
     const [predictionStats, setPredictionStats] = useState(null);
     const [statsLoading, setStatsLoading] = useState(false);
 
-    const satellite_params = '&expression=b3;b2;b1&rescale=0,3000';
+    const satelliteParams = {
+        expression: 'b3;b2;b1',
+        rescale: '0,3000'
+    };
     // prediction_params will be dynamic based on stats
 
 
@@ -132,10 +143,17 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
             // For segmentation, generate custom colormap based on class indices
             const classIndices = predictionStats.class_indices || [];
             const colormapJson = generateTiTilerColormap(classIndices);
-            return `&expression=b1&colormap=${encodeURIComponent(colormapJson)}`;
+            return {
+                expression: 'b1',
+                colormap: colormapJson
+            };
         } else {
             // For regression, use rescaling with actual min/max values
-            return `&expression=b1&rescale=${predictionStats.min},${predictionStats.max}&colormap_name=viridis`;
+            return {
+                expression: 'b1',
+                rescale: `${predictionStats.min},${predictionStats.max}`,
+                colormap_name: 'viridis'
+            };
         }
     };
 
@@ -172,8 +190,15 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
                 const maxZoom = Math.min(satelliteTileJson.maxzoom || 18, predictionTileJson.maxzoom || 18);
 
                 // Add both satellite and prediction layers in one call
-                const satelliteRgbTilesUrl = prefixTitilerUrl(titiler_data.satellite.tiles_url) + satellite_params;
-                const predictionTilesUrl = prefixTitilerUrl(titiler_data.prediction.tiles_url) + getDynamicPredictionParams();
+                const satelliteRgbTilesUrl = prefixTitilerUrl(
+                    appendQueryParams(titiler_data.satellite.tiles_url, satelliteParams)
+                );
+                const predictionTilesUrl = prefixTitilerUrl(
+                    appendQueryParams(
+                        titiler_data.prediction.tiles_url,
+                        getDynamicPredictionParams()
+                    )
+                );
 
                 onAddToMap({
                     taskId: task.task_id,
@@ -200,8 +225,15 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
             } catch (error) {
                 logger.error('Error fetching TileJSON:', error);
                 // Fallback without bounds and zoom constraints
-                const satelliteRgbTilesUrl = prefixTitilerUrl(titiler_data.satellite.tiles_url) + satellite_params;
-                const predictionTilesUrl = prefixTitilerUrl(titiler_data.prediction.tiles_url) + getDynamicPredictionParams();
+                const satelliteRgbTilesUrl = prefixTitilerUrl(
+                    appendQueryParams(titiler_data.satellite.tiles_url, satelliteParams)
+                );
+                const predictionTilesUrl = prefixTitilerUrl(
+                    appendQueryParams(
+                        titiler_data.prediction.tiles_url,
+                        getDynamicPredictionParams()
+                    )
+                );
 
                 onAddToMap({
                     taskId: task.task_id,
@@ -228,14 +260,16 @@ const VisualizationDialog = ({ open, onClose, task, onAddToMap, onCloseTasksMoni
 
     const getSatellitePreviewUrl = () => {
         if (!titiler_data?.satellite?.preview_url) return '';
-        return prefixTitilerUrl(titiler_data.satellite.preview_url + satellite_params);
+        return prefixTitilerUrl(
+            appendQueryParams(titiler_data.satellite.preview_url, satelliteParams)
+        );
     };
 
     const getPredictionPreviewUrl = () => {
         if (!titiler_data?.prediction?.preview_url) return '';
         const params = getDynamicPredictionParams();
         if (!params) return '';
-        return prefixTitilerUrl(titiler_data.prediction.preview_url + params);
+        return prefixTitilerUrl(appendQueryParams(titiler_data.prediction.preview_url, params));
     };
 
     const handleSatelliteImageLoad = () => {

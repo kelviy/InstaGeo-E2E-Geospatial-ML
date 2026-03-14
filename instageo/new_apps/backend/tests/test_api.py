@@ -1,5 +1,6 @@
 import os
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -264,3 +265,41 @@ def test_visualize_task_id_with_mocked_cogs(mock_predictions_cog, mock_chips_cog
     assert f"{task_id}_predictions" in prediction["tiles_url"]
     assert f"{task_id}_predictions" in prediction["tilejson_url"]
     assert f"{task_id}_predictions" in prediction["preview_url"]
+
+
+@patch("instageo.new_apps.backend.app.main.tiler_service._get_chips_cog_file")
+@patch("titiler.core.factory.TilerFactory.router")
+def test_titiler_middleware_preserves_expression_query(mock_titiler_router, mock_chips_cog):
+    """The middleware should URL-encode rewritten TiTiler query params."""
+    from fastapi import APIRouter
+    from fastapi.responses import JSONResponse
+
+    router = APIRouter()
+
+    @router.get("/preview.png")
+    async def preview(url: str, expression: str, rescale: str):  # pragma: no cover
+        return JSONResponse(
+            {
+                "url": url,
+                "expression": expression,
+                "rescale": rescale,
+            }
+        )
+
+    mock_titiler_router.return_value = router
+    mock_chips_cog.return_value = Path("/tmp/test_chips.tif")
+
+    response = client.get(
+        "/api/titiler/preview.png",
+        params={
+            "url": "task-123_chips",
+            "expression": "b3;b2;b1",
+            "rescale": "0,3000",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["url"] == "file:///tmp/test_chips.tif"
+    assert data["expression"] == "b3;b2;b1"
+    assert data["rescale"] == "0,3000"

@@ -5,6 +5,7 @@ import os
 import uuid
 from contextlib import asynccontextmanager
 from typing import Any, Awaitable, Callable, Dict, List, Optional
+from urllib.parse import urlencode
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -135,8 +136,9 @@ async def intercept_titiler_requests(
                 query_params = dict(request.query_params)
                 query_params["url"] = f"file://{cog_file}"
 
-                # Create new query string
-                new_query = "&".join([f"{k}={v}" for k, v in query_params.items()])
+                # Rebuild the query string with URL encoding so parameter values such as
+                # TiTiler expressions survive proxying unchanged.
+                new_query = urlencode(query_params, doseq=True)
 
                 # Modify the request scope to update query string
                 request.scope["query_string"] = new_query.encode()
