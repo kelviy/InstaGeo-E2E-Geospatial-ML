@@ -15,6 +15,7 @@ x-instageo-backend-service-defaults: &backend-defaults
     - database-data:/app/database
   networks:
     - instageo-network
+    - proxy
 
 services:
   instageo-redis:
