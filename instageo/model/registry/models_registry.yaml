@@ -1,0 +1,98 @@
+# InstaGeo Model Registry
+# Configuration file for available models and their metadata
+
+version: "1.0"
+last_updated: "2026-03-11"
+
+models:
+  aod-estimator:
+    model_type: reg
+    model_short_name: "aod-estim"
+    model_name: "Aerosol Optical Depth Estimation"
+    model_description: "Estimates aerosol optical depth values from satellite imagery for air quality monitoring"
+    classes_mapping: null
+    data_source: "HLS"
+    temporal_step: 30
+    sizes:
+      tiny:
+        gcs_folder: "gs://instageo/models/aeronet_aod/tiny"
+        num_params: 4.14
+      x-large:
+        gcs_folder: "gs://instageo/models/aeronet_aod/x-large"
+        num_params: 313.29
+
+  biomass-estimator:
+    model_type: reg
+    model_short_name: "biomass-estim"
+    model_name: "Biomass Estimation"
+    model_description: "Estimates biomass values from satellite imagery for environmental monitoring"
+    classes_mapping: null
+    data_source: "HLS"
+    temporal_step: 50
+    sizes:
+      tiny:
+        gcs_folder: "gs://instageo/models/biomass/tiny"
+        num_params: 8.84
+      large:
+        gcs_folder: "gs://instageo/models/biomass/large"
+        num_params: 91.53
+
+  crop-class:
+    model_type: seg
+    model_short_name: "crop-class"
+    model_name: "Crop classification"
+    model_description: "Performs crop type classification over agricultural regions"
+    classes_mapping:
+      0: "Pasture/Natural Vegetation"
+      1: "Evergreen Forest"
+      2: "corn"
+      3: "soybeans"
+      4: "Herbaceous Wetlands"
+      5: "Developed/Open Space/Barren"
+      6: "Open Water"
+      7: "Winter Wheat"
+      8: "Alfalfa"
+      9: "Fallow/Idle Cropland"
+      10: "Cotton"
+      11: "sorghum"
+      12: "Others"
+
+    data_source: "HLS"
+    temporal_step: 30
+    sizes:
+      tiny:
+        gcs_folder: "gs://instageo/models/crop_classification/tiny"
+        num_params: 8.84
+      x-large:
+        gcs_folder: "gs://instageo/models/crop_classification/x-large"
+        num_params: 388.50
+
+  flood-mapping:
+    model_type: seg
+    model_short_name: "flood-mapping"
+    model_name: "Flood mapping"
+    model_description: "Performs flood mapping over flood prone areas"
+    classes_mapping:
+      0: "No Flood"
+      1: "Flood"
+    data_source: "HLS"
+    temporal_step: 30
+    sizes:
+      large:
+        gcs_folder: "gs://instageo/models/flood_mapping/large"
+        num_params: 91.53
+
+  locust-breeding-ground-prediction:
+    model_type: seg
+    model_short_name: "locust-breeding-ground-prediction"
+    model_name: "Locust breeding ground prediction"
+    model_description: "Predicts locust breeding ground areas from satellite imagery"
+    classes_mapping:
+      0: "No Locust"
+      1: "Locust"
+    data_source: "HLS"
+    temporal_step: 30
+    sizes:
+      large:
+        gcs_folder: "gs://instageo/models/locust_breeding/large"
+        num_params: 133.84
